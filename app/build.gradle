@@ -1,0 +1,91 @@
+apply plugin: 'com.android.application'
+
+android {
+    //签名
+    signingConfigs {
+        debugConfig {
+            storeFile file("/Users/pujiang/WorkSpace/UITest/fengniao_android/app/fengniao_keystore.jks")      //签名文件
+            storePassword "fengniao123"
+            keyAlias "fengniao123"
+            keyPassword "fengniao123"  //签名密码
+        }
+        release{
+            storeFile file("/Users/pujiang/WorkSpace/UITest/fengniao_android/app/fengniao_keystore.jks")      //签名文件
+            storePassword "fengniao123"
+            keyAlias "fengniao123"
+            keyPassword "fengniao123"  //签名密码
+        }
+    }
+
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+    defaultConfig {
+        applicationId "com.tsy.sample.myokhttp"
+        minSdkVersion 15
+        targetSdkVersion 24
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        //ndk {
+        //    abiFilters  "armeabi-v7a"  // 指定要ndk需要兼容的架构(这样其他依赖包里mips,x86,armeabi,arm-v8之类的so会被过滤掉)
+        //}
+    }
+    buildTypes {
+        debug {
+            buildConfigField "boolean", "LOG_DEBUG", "true"    // 显示Log
+            versionNameSuffix "-debug"                         // 生成的版本包名字后缀
+            minifyEnabled false                                // 是否混淆处理
+            zipAlignEnabled false                              // Zipalign优化
+            shrinkResources false                              // 去掉无用资源
+            signingConfig signingConfigs.debug                 // 签名配置
+        }
+
+        release {
+            buildConfigField "boolean", "LOG_DEBUG", "false"   // 不显示Log
+            minifyEnabled true                                 // 是否混淆处理
+            zipAlignEnabled true                               // Zipalign优化
+            shrinkResources true                               // 移除无用的resource文件
+            signingConfig signingConfigs.release               // 签名配置
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // 自定义输出配置
+            applicationVariants.all { variant ->
+                variant.outputs.each { output ->
+                    def outputFile = output.outputFile
+                    if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                        // 输出apk名称为okhttp_v1.0_wandoujia.apk
+                        def fileName = "okhttp_v${defaultConfig.versionName}_${variant.productFlavors[0].name}.apk"
+                        output.outputFile = new File(outputFile.parent, fileName)
+                    }
+                }
+            }
+        }
+    }
+
+    productFlavors {
+        kuan {}
+        xiaomi {}
+        qh360 {}
+        baidu {}
+        wandoujia {}
+    }
+
+    productFlavors.all {
+        flavor -> flavor.manifestPlaceholders = [UMENG_CHANNEL_VALUE: name]
+    }
+
+    lintOptions {
+        abortOnError false       //错误发生后停止gradle构建
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.1.0'
+    testCompile 'junit:junit:4.12'
+
+    compile project(":myokhttp")
+//    compile 'com.tsy:myokhttp:1.1.3'
+}
